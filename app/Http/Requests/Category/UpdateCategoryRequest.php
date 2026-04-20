@@ -24,7 +24,8 @@ class UpdateCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'string', 'max:100', Rule::unique('categories', 'name')->ignore($this->route('category')->id)],
+            // Чуть-чуть добавил от тебя, не может же быть 2‑х категорий с одним названием.
+            'name' => ['sometimes', 'string', Rule::unique('categories', 'name')->ignore($this->route('category')->id)],
             'description' => ['sometimes', 'string', 'max:255'],
         ];
     }

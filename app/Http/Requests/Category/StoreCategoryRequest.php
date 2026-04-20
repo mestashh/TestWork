@@ -23,7 +23,8 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100', 'unique:categories,name'],
+            // Чуть-чуть добавил от тебя, не может же быть 2‑х категорий с одним названием.
+            'name' => ['required', 'string', 'unique:categories,name'],
             'description' => ['required', 'string', 'max:255'],
         ];
     }
