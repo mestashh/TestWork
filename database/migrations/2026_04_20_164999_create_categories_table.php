@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100); // В ТЗ явно не указана необходимая длина названия.
+            $table->string('name', 100)->unique(); // В ТЗ явно не указана необходимая длина названия.
             $table->string('description', 255);
             $table->timestamps();
         });
