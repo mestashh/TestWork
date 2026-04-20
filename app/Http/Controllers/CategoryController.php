@@ -19,7 +19,7 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::query()->paginate(15);
+        $categories = Category::all();
 
         return CategoryResource::collection($categories);
     }
@@ -48,7 +48,6 @@ class CategoryController extends Controller
     public function update(UpdateCategoryRequest $request, Category $category)
     {
         $category->update($request->validated());
-        $category->save();
 
         return new CategoryResource($category);
     }

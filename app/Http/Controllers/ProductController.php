@@ -19,7 +19,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::query()->paginate(15);
+        $products = Product::query()->with('category')->paginate(15);
 
         return ProductResource::collection($products);
     }
@@ -30,7 +30,7 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         $product = Product::create($request->validated());
-
+        $product->load('category');
         return new ProductResource($product);
     }
 
@@ -39,6 +39,7 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
+        $product->load('category');
         return new ProductResource($product);
     }
 
@@ -48,7 +49,7 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product)
     {
         $product->update($request->validated());
-        $product->save();
+        $product->load('category');
 
         return new ProductResource($product);
     }

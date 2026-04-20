@@ -11,6 +11,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property mixed $description
  * @property mixed $price
  * @property mixed $category_id
+ * @method category()
  */
 class ProductResource extends JsonResource
 {
@@ -27,6 +28,7 @@ class ProductResource extends JsonResource
             'description' => $this->description,
             'price' => $this->price,
             'category_id' => $this->category_id,
+            'category_info' => new CategoryResource($this->whenLoaded('category')),
         ];
     }
 }
