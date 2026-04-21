@@ -6,10 +6,12 @@ use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Services\ProductService;
+use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function __construct()
+    public function __construct(private readonly ProductService $productService)
     {
         $this->authorizeResource(Product::class, 'product');
     }
@@ -17,9 +19,9 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::query()->with('category')->paginate(15);
+        $products = $this->productService->index($request);
 
         return ProductResource::collection($products);
     }
