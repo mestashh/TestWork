@@ -1,111 +1,112 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
-import InputError from '@/components/InputError.vue';
-import PasswordInput from '@/components/PasswordInput.vue';
-import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
-import { register } from '@/routes';
-import { store } from '@/routes/login';
-import { request } from '@/routes/password';
+import { router } from '@inertiajs/vue3';
+import { reactive, ref } from 'vue';
+import { useAuth } from '@/composables/useAuth';
+import { getApiErrorMessage } from '@/utils/apiError';
 
-defineOptions({
-    layout: {
-        title: 'Log in to your account',
-        description: 'Enter your email and password below to log in',
-    },
+type LoginForm = {
+    email: string;
+    password: string;
+};
+
+const form = reactive<LoginForm>({
+    email: '',
+    password: '',
 });
 
-defineProps<{
-    status?: string;
-    canResetPassword: boolean;
-    canRegister: boolean;
-}>();
+const errorMessage = ref('');
+const loading = ref(false);
+
+const { login, isAuthenticated } = useAuth();
+
+if (isAuthenticated.value) {
+    router.visit('/');
+}
+
+const submit = async (): Promise<void> => {
+    errorMessage.value = '';
+
+    if (!form.email || !form.password) {
+        errorMessage.value = 'Введите email и пароль';
+
+        return;
+    }
+
+    loading.value = true;
+
+    try {
+        await login(form);
+        router.visit('/');
+    } catch (error: unknown) {
+        errorMessage.value = getApiErrorMessage(error, 'Ошибка авторизации');
+    } finally {
+        loading.value = false;
+    }
+};
 </script>
 
 <template>
-    <Head title="Log in" />
-
-    <div
-        v-if="status"
-        class="mb-4 text-center text-sm font-medium text-green-600"
-    >
-        {{ status }}
-    </div>
-
-    <Form
-        v-bind="store.form()"
-        :reset-on-success="['password']"
-        v-slot="{ errors, processing }"
-        class="flex flex-col gap-6"
-    >
-        <div class="grid gap-6">
-            <div class="grid gap-2">
-                <Label for="email">Email address</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    required
-                    autofocus
-                    :tabindex="1"
-                    autocomplete="email"
-                    placeholder="email@example.com"
-                />
-                <InputError :message="errors.email" />
-            </div>
-
-            <div class="grid gap-2">
-                <div class="flex items-center justify-between">
-                    <Label for="password">Password</Label>
-                    <TextLink
-                        v-if="canResetPassword"
-                        :href="request()"
-                        class="text-sm"
-                        :tabindex="5"
-                    >
-                        Forgot password?
-                    </TextLink>
-                </div>
-                <PasswordInput
-                    id="password"
-                    name="password"
-                    required
-                    :tabindex="2"
-                    autocomplete="current-password"
-                    placeholder="Password"
-                />
-                <InputError :message="errors.password" />
-            </div>
-
-            <div class="flex items-center justify-between">
-                <Label for="remember" class="flex items-center space-x-3">
-                    <Checkbox id="remember" name="remember" :tabindex="3" />
-                    <span>Remember me</span>
-                </Label>
-            </div>
-
-            <Button
-                type="submit"
-                class="mt-4 w-full"
-                :tabindex="4"
-                :disabled="processing"
-                data-test="login-button"
-            >
-                <Spinner v-if="processing" />
-                Log in
-            </Button>
-        </div>
-
+    <div class="min-h-screen bg-neutral-950 text-neutral-100">
         <div
-            class="text-center text-sm text-muted-foreground"
-            v-if="canRegister"
+            class="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-10"
         >
-            Don't have an account?
-            <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
+            <div class="grid w-full gap-8 lg:grid-cols-2">
+                <div class="hidden flex-col justify-center lg:flex">
+                    <h1 class="text-5xl font-bold tracking-tight">
+                        Вход в административную панель
+                    </h1>
+                </div>
+
+                <div class="flex items-center justify-center">
+                    <form
+                        class="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-8 shadow-2xl"
+                        @submit.prevent="submit"
+                    >
+                        <div class="mb-5">
+                            <label
+                                class="mb-2 block text-sm font-medium text-neutral-200"
+                            >
+                                Email
+                            </label>
+                            <input
+                                v-model="form.email"
+                                type="email"
+                                class="w-full rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-white transition outline-none placeholder:text-neutral-500 focus:border-white/30"
+                                placeholder="Введите email"
+                            />
+                        </div>
+
+                        <div class="mb-5">
+                            <label
+                                class="mb-2 block text-sm font-medium text-neutral-200"
+                            >
+                                Пароль
+                            </label>
+                            <input
+                                v-model="form.password"
+                                type="password"
+                                class="w-full rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-white transition outline-none placeholder:text-neutral-500 focus:border-white/30"
+                                placeholder="Введите пароль"
+                            />
+                        </div>
+
+                        <p
+                            v-if="errorMessage"
+                            class="mb-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+                        >
+                            {{ errorMessage }}
+                        </p>
+
+                        <button
+                            type="submit"
+                            class="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-60"
+                            :disabled="loading"
+                        >
+                            {{ loading ? 'Входим...' : 'Войти' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
-    </Form>
+    </div>
 </template>
