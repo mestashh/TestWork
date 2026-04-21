@@ -10,3 +10,4 @@ docker compose run --rm app php artisan key:generate
 docker compose run --rm app php artisan migrate:fresh --seed
 docker compose run --rm node npm install
 docker compose run --rm node npm run build
+docker compose up -d
