@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\Attributes\Test;
@@ -88,5 +89,57 @@ class ProductTest extends TestCase
         $request = $this->deleteJson("api/products/{$products->first()->id}");
 
         $request->assertStatus(401);
+    }
+
+    #[Test]
+    public function user_can_add_product(): void
+    {
+        $this->createProducts();
+        $user = User::create([
+            'name' => 'Test',
+            'email' => 'email@example.com',
+            'password' => 'password123',
+        ]);
+        $request = $this->actingAs($user)->postJson('api/products/', [
+            'name' => 'Test',
+            'description' => 'TestDescription',
+            'price' => 1000,
+            'category_id' => 1,
+        ]);
+
+        $request->assertStatus(201);
+    }
+
+    #[Test]
+    public function user_can_update_product(): void
+    {
+        $products = $this->createProducts();
+        $user = User::create([
+            'name' => 'Test',
+            'email' => 'email@example.com',
+            'password' => 'password123',
+        ]);
+        $request = $this->actingAs($user)->putJson("api/products/{$products->first()->id}", [
+            'name' => 'Test',
+            'description' => 'TestDescription',
+            'price' => 1000,
+            'category_id' => 1,
+        ]);
+
+        $request->assertStatus(200);
+    }
+
+    #[Test]
+    public function user_can_delete_product(): void
+    {
+        $products = $this->createProducts();
+        $user = User::create([
+            'name' => 'Test',
+            'email' => 'email@example.com',
+            'password' => 'password123',
+        ]);
+        $request = $this->actingAs($user)->deleteJson("api/products/{$products->first()->id}");
+
+        $request->assertStatus(204);
     }
 }
