@@ -49,30 +49,10 @@ const {
     updateProduct,
 } = useProducts();
 
-const validateForm = (): boolean => {
-    validationErrors.value = {};
-
-    if (!form.name) {
-        validationErrors.value.name = ['Название обязательно'];
-    }
-
-    if (!form.category_id) {
-        validationErrors.value.category_id = ['Категория обязательна'];
-    }
-
-    if (!form.description) {
-        validationErrors.value.description = ['Описание обязательно'];
-    }
-
-    if (!form.price || Number(form.price) <= 0) {
-        validationErrors.value.price = ['Цена должна быть больше 0'];
-    }
-
-    return Object.keys(validationErrors.value).length === 0;
-};
-
 const saveProduct = async (): Promise<void> => {
     loading.value = true;
+    validationErrors.value = {};
+    requestError.value = '';
 
     try {
         const payload: ProductPayload = {
@@ -94,7 +74,7 @@ const saveProduct = async (): Promise<void> => {
         } else if (getApiErrorStatus(error) === 404) {
             notFound.value = true;
         } else {
-            alert(getApiErrorMessage(error, 'Ошибка сохранения'));
+            requestError.value = getApiErrorMessage(error, 'Ошибка сохранения');
         }
     } finally {
         loading.value = false;
@@ -103,10 +83,6 @@ const saveProduct = async (): Promise<void> => {
 };
 
 const submit = async (): Promise<void> => {
-    if (!validateForm()) {
-        return;
-    }
-
     if (isEdit.value) {
         showSaveModal.value = true;
 

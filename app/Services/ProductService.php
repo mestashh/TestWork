@@ -14,19 +14,25 @@ class ProductService
             'search' => ['nullable', 'string', 'max:255'],
         ]);
 
+        $search = $request->input('search');
+        $categoryId = $request->input('category_id');
+
+        if ($search) {
+            $builder = Product::search($search);
+
+            if ($categoryId) {
+                $builder->where('category_id', (int) $categoryId);
+            }
+
+            return $builder
+                ->query(fn ($query) => $query->with('category'))
+                ->paginate(15)
+                ->withQueryString();
+        }
+
         return Product::query()
             ->with('category')
-            ->when(
-                request('category_id'),
-                fn ($query, $categoryId) => $query->where('category_id', $categoryId)
-            )
-            ->when(
-                request('search'),
-                fn ($query, $search) => $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%");
-                })
-            )
+            ->when($categoryId, fn ($q, $id) => $q->where('category_id', $id))
             ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
